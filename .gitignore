@@ -1,0 +1,7 @@
+build/
+build/*
+.pytest_cache
+.env
+build
+.envar
+.env/*
