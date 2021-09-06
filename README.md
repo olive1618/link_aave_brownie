@@ -1,17 +1,12 @@
-<br/>
-<p align="center">
-<a href="https://chain.link" target="_blank">
-<img src="https://raw.githubusercontent.com/PatrickAlphaC/aave_brownie_py/main/img/aave.png" width="225" alt="Python + Aave">
-<img src="https://raw.githubusercontent.com/PatrickAlphaC/aave_brownie_py/main/img/python.png" width="225" alt="Python + Aave">
-</a>
-</p>
-<br/>
+# link_aave_brownie
 
-# aave_brownie_py
+Chainlink [tutorial](https://blog.chain.link/blockchain-fintech-defi-tutorial-lending-borrowing-python/) by Patrick Collins to learn some DeFi basics with Python.
 
-Put down collateral, Borrow, and repay a loan from Aave! Use this to short assets and accrue interest. 
+## Intro
 
-[You can see a web3 version of this here. ](https://github.com/PatrickAlphaC/aave_web3_py)
+Put down collateral, borrow, and repay a loan from Aave! Use this to short assets and accrue interest. 
+
+[You can see a web3 version of this here](https://github.com/PatrickAlphaC/aave_web3_py)
 
 In our `aave_borrow.py` script, we do the following:
 
@@ -23,47 +18,46 @@ In our `aave_borrow.py` script, we do the following:
 6. We can view the txs on etherscan to see what's going on under the hood. 
 
 
-# Setup
-
-You'll need python installed. 
-
+## Setup
+1. Setup python and virtual env and then install requirements.
 ```
 pip install -r requirements.txt
 ```
-Or, if you run into issues use pipx:
-```bash
-pip install --user pipx
-pipx ensurepath
-# restart your terminal
-pipx install eth-brownie
+The Brownie [project structure](https://eth-brownie.readthedocs.io/en/stable/structure.html#structure) folders will be added.
+
+2. Create a [MetaMask wallet](https://metamask.io/). Use the iOS app or the browser extension. Retrieve the MetaMask account private key and save to the `PRIVATE_KEY` variable in the .env_var file like
 ```
-
-You'll need the following [environment variables](https://www.twilio.com/blog/2017/01/how-to-set-environment-variables.html). You can set them all in your `.env` file:
-
+export PRIVATE_KEY=0x34723rbjnf847620lqmjds70wi3wc9plwschu4646qojqlkngf4r78pjnhvsd
 ```
-export WEB3_INFURA_PROJECT_ID=YourProjectID
-export PRIVATE_KEY="0xasdfasdfasdfasd..."
+Note that `0x` is added to the start of the private key
+
+3. Create an [Infura](https://infura.io) project. Retrieve the Infura project ID and save to the `WEB3_INFURA_PROJECT_ID` variable in the .env_var file like
 ```
+export WEB3_INFURA_PROJECT_ID=lknef8023nwdbd8wpkwpmdkn48349qwe
+```
+![Infura project settings](img/infura_project.png "Infura project settings")
 
-- `PRIVATE_KEY`: Your Private Key from your Wallet. *Note: If using metamask, you'll have to add a 0x to the start of your private key.
-- `WEB3_INFURA_PROJECT_ID`: Your connection to the blockchain. You can get a URL from a service like [Infura](https://infura.io/)]. Right now it is hard coded to work with infura, but you can modify it however you want using `brownie networks modify`. 
+4. Add your environmental variables with `source .env_var`
 
-## Run `source .env`
+5. Get Kovan testnet ETH from the [Chainlink faucet](https://docs.chain.link/docs/link-token-contracts/) and add it to your MetaMask wallet.
+Add MetaMask wallet and get test ETH. Processing could require several minutes. Get a coffee ;)
+![Chainlink Kovan faucet](img/kovan.png "Chainlink Kovan faucet")
+Test ETH added to MetaMask wallet
+![Metamask account with Kovan testnet ETH](img/metamask_account.png "Metamask with Kovan ETH")
 
-This doesn't auto-pull in your `.env` file at the start, so you have to set your environment variables at the start. 
+## Run scripts
 
-And last, be sure to check the aave_dai_token if you're using a [testnet DAI token](https://docs.aave.com/developers/deployed-contracts/deployed-contracts0).  Aave sometimes changes the token they use on testnet to keep liquidity, [please check here for reference](https://aave.github.io/aave-addresses/kovan.json). 
-Also, feel free to check the [Aave docs](https://docs.aave.com/developers/the-core-protocol/lendingpool) as well, to learn more about the tools we are using. 
-
-# Quickstart - kovan
-
-1. [Get some kovan ETH](https://faucet.kovan.network/)
-
-2. Get some WETH
-
+Exchange some of the ETH for wrapped ETH (WETH)
 ```
 brownie run scripts/get_weth.py --network kovan
 ```
+Run this script when you have fast download speeds. It retrieves a bunch of files. Th
+
+Generate interface ABIs.
+
+2. Get some WETH
+
+
 
 3. Run the script!
 
