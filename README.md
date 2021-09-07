@@ -1,6 +1,7 @@
 # link_aave_brownie
 
-Chainlink [tutorial](https://blog.chain.link/blockchain-fintech-defi-tutorial-lending-borrowing-python/) by Patrick Collins to learn some DeFi basics with Python.
+### Chainlink [tutorial](https://blog.chain.link/blockchain-fintech-defi-tutorial-lending-borrowing-python/) by Patrick Collins to learn some DeFi basics with Python.
+
 
 ## Intro
 
@@ -40,35 +41,28 @@ export WEB3_INFURA_PROJECT_ID=lknef8023nwdbd8wpkwpmdkn48349qwe
 4. Add your environmental variables with `source .env_var`
 
 5. Get Kovan testnet ETH from the [Chainlink faucet](https://docs.chain.link/docs/link-token-contracts/) and add it to your MetaMask wallet.
-Add MetaMask wallet and get test ETH. Processing could require several minutes. Get a coffee ;)
+
+Add MetaMask wallet address in the Chainlink faucet form and get test ETH. Processing could require several minutes. Get a coffee ;)
+
 ![Chainlink Kovan faucet](img/kovan.png "Chainlink Kovan faucet")
+
 Test ETH added to MetaMask wallet
+
 ![Metamask account with Kovan testnet ETH](img/metamask_account.png "Metamask with Kovan ETH")
 
 ## Run scripts
 
-Exchange some of the ETH for wrapped ETH (WETH)
+ETH pre-dates and does not conform to the ERC-20 standard. So we need to exchange some of the ETH for wrapped ETH (wETH), which can be traded in smart contracts running on Ethereum. Dapps running on Ethereum trade in tokens using the same standard. "Wrapping" ETH actually means trading ETH for wETH
 ```
 brownie run scripts/get_weth.py --network kovan
 ```
-Run this script when you have fast download speeds. It retrieves a bunch of files. Th
+The script prints out details like your wallet address, account balance and gas paid. Amounts are in Wei, which is a subdivision of ETH. 1 ETH = 1,000,000,000,000,000,000 Wei.
 
-Generate interface ABIs.
-
-2. Get some WETH
-
-
-
-3. Run the script!
-
-```
-brownie run scripts/aave_borrow.py --network kovan
-```
+Brownie shows the transaction info 
+![Transaction to trade ETH for wETH](img/eth_to_weth_txn.png "ETH to wETH txn")
 
 
 # Quickstart - mainnet-fork
-
-
 Optional for running locally:
 If you want to run locally, you can install `ganache-cli` and `yarn`. Here is where you can [install yarn.](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
 
