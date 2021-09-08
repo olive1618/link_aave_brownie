@@ -50,7 +50,8 @@ Test ETH added to MetaMask wallet
 
 ![Metamask account with Kovan testnet ETH](img/metamask_account.png "Metamask with Kovan ETH")
 
-## Run scripts
+
+## Convert ETH to wETH
 
 ETH pre-dates and does not conform to the ERC-20 standard. So we need to exchange some of the ETH for wrapped ETH (wETH), which can be traded in smart contracts running on Ethereum. Dapps running on Ethereum trade in tokens using the same standard. "Wrapping" ETH actually means trading ETH for wETH
 ```
@@ -62,18 +63,12 @@ Brownie shows the transaction info
 ![Transaction to trade ETH for wETH](img/eth_to_weth_txn.png "ETH to wETH txn")
 
 
-# Quickstart - mainnet-fork
-Optional for running locally:
-If you want to run locally, you can install `ganache-cli` and `yarn`. Here is where you can [install yarn.](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
+## Borrow then repay
+
+Retrieve the address for the Kovan testnet Aave lending pool address provider. Then use it to retrieve the address of Aave lending protocol contract. The address provider is used because the main Aave lending pool contract address changes.
+
+The lending pool contract is the main contract of the Aave protocol. It exposes user actions like deposit, withdraw, borrow, repay, etc.
 
 ```
-yarn global add ganache-cli
-```
-
-Then, you can run `ganache-cli --fork YOUR_INFURA_URL_HERE`, or just `brownie run <YOUR_SCRIPT> --network mainnet-fork`
-
-1. Get some WETH, borrow, and repay!
-
-```
-brownie run scripts/aave_borrow.py
+brownie run scripts/aave_borrow.py --network kovan
 ```

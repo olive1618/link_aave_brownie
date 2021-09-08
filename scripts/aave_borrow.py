@@ -1,54 +1,61 @@
 from brownie import accounts, config, interface, network
 from web3 import Web3
+
 from scripts.get_weth import get_weth
 
-amount = Web3.toWei(0.1, "ether")
+
 
 
 def main():
-    account = get_account()
-    erc20_address = config["networks"][network.show_active()]["weth_token"]
-    if network.show_active() in ["mainnet-fork"]:
-        get_weth(account=account)
+    my_wallet_address = accounts.add(config["wallets"]["from_key"])
+    my_balance = my_wallet_address.balance()
+    print(f'My wallet address: {my_wallet_address}')
+    print(f'Account balance: {my_balance} in Wei')
+
+    weth_wallet_addr = config["networks"][network.show_active()]["weth_token"]
+    print(f'wETH Kovan wallet address: {weth_wallet_addr}')
+
     lending_pool = get_lending_pool()
-    approve_erc20(amount, lending_pool.address, erc20_address, account)
-    print("Depositing...")
-    lending_pool.deposit(erc20_address, amount, account.address, 0, {"from": account})
-    print("Deposited!")
-    borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, account)
-    print(f"LETS BORROW IT ALL")
-    erc20_eth_price = get_asset_price()
-    amount_erc20_to_borrow = (1 / erc20_eth_price) * (borrowable_eth * 0.95)
-    print(f"We are going to borrow {amount_erc20_to_borrow} DAI")
-    borrow_erc20(lending_pool, amount_erc20_to_borrow, account)
+    amount = Web3.toWei(0.01, "ether")
+    print(f'Amount to borrow: {amount}')
 
-    borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, account)
-    # amount_erc20_to_repay = (1 / erc20_eth_price) * (total_debt_eth * 0.95)
-    repay_all(amount_erc20_to_borrow, lending_pool, account)
+    approve_erc20(amount, lending_pool.address, weth_wallet_addr, my_wallet_address)
 
+    # print("Depositing...")
+    # lending_pool.deposit(weth_wallet_addr, amount, my_wallet_address.address, 0, {"from": my_wallet_address})
+    # print("Deposited!")
+    # borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, my_wallet_address)
+    # print(f"LETS BORROW IT ALL")
+    # erc20_eth_price = get_asset_price()
+    # amount_erc20_to_borrow = (1 / erc20_eth_price) * (borrowable_eth * 0.95)
+    # print(f"We are going to borrow {amount_erc20_to_borrow} DAI")
+    # borrow_erc20(lending_pool, amount_erc20_to_borrow, my_wallet_address)
 
-def get_account():
-    if network.show_active() in ["hardhat", "development", "mainnet-fork"]:
-        return accounts[0]
-    if network.show_active() in config["networks"]:
-        account = accounts.add(config["wallets"]["from_key"])
-        return account
-    return None
+    # borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, my_wallet_address)
+    # # amount_erc20_to_repay = (1 / erc20_eth_price) * (total_debt_eth * 0.95)
+    # repay_all(amount_erc20_to_borrow, lending_pool, my_wallet_address)
 
 
 def get_lending_pool():
-    lending_pool_addresses_provider = interface.ILendingPoolAddressesProvider(
-        config["networks"][network.show_active()]["lending_pool_addresses_provider"]
+    """Get the 
+    """
+    aave_lending_pool_addr_provider = interface.ILendingPoolAddressesProvider(
+        config["networks"][network.show_active()]["aave_lending_pool_addresses_provider"]
     )
-    lending_pool_address = lending_pool_addresses_provider.getLendingPool()
+    print(f'Address of the Aave lending pool address provider: {aave_lending_pool_addr_provider}')
+    lending_pool_address = aave_lending_pool_addr_provider.getLendingPool()
+    print(f'Address of the Aave lending pool: {lending_pool_address}')
     lending_pool = interface.ILendingPool(lending_pool_address)
+
     return lending_pool
 
 
-def approve_erc20(amount, lending_pool_address, erc20_address, account):
+def approve_erc20(amount, lending_pool_address, erc20_addr, my_acct_addr):
+    """Check if Aave protocol approves provided wETH token as ERC20 compliant
+    """
     print("Approving ERC20...")
-    erc20 = interface.IERC20(erc20_address)
-    tx_hash = erc20.approve(lending_pool_address, amount, {"from": account})
+    erc20 = interface.IERC20(erc20_addr)
+    tx_hash = erc20.approve(lending_pool_address, amount, {"from": my_acct_addr})
     tx_hash.wait(1)
     print("Approved!")
     return True
