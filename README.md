@@ -68,7 +68,19 @@ Brownie shows the transaction info
 Retrieve the address for the Kovan testnet Aave lending pool address provider. Then use it to retrieve the address of Aave lending protocol contract. The address provider is used because the main Aave lending pool contract address changes.
 
 The lending pool contract is the main contract of the Aave protocol. It exposes user actions like deposit, withdraw, borrow, repay, etc.
-
 ```
 brownie run scripts/aave_borrow.py --network kovan
 ```
+Then check if the wETH is ERC20 compliant. This check is also a transaction on the blockchain. The transaction waits in the mempool (memory pool) until a miner picks up the transaction to include it in the next block. Paying higher fees encourages miners to select your transaction.
+
+Each block mined on top of the block containing my transaction is a confirmation. Confirmations give confidence in the validity of a transaction. Large transactions requires more confirmations.
+![ERC20 check transaction](img/check_erc20.png "ERC20 check transaction")
+
+Then deposit some wETH into Aave as collateral for the subsequent loan. When depositing the wETH, Aave sends my wallet aToken. This aToken, which is aWETH in this case, is an interest-bearing token that is minted on deposit. Whenever its time to withdraw the deposited wETH, the equivalent amount of aWETH is burnt.
+![Aave deposit transaction](img/deposit_txn.png "Aave deposit transaction")
+
+Add the aWETH to Metamask using the Kovan testnet aWETH address `0x87b1f4cf9bd63f7bbd3ee1ad04e8f52540349347`.
+
+Retrieve the borrower loan data, including the health factor and the amounts deposited, borrowed and available to borrow. The retrieval of this info does not require a smart contract nor a gas fee because it is only a view transaction.
+
+Using a Chainlink data feed, get the current price of ETH in DAI. DAI is a stablecoin  running on Ethereum that tries to maintain a value of $1.00 USD

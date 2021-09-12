@@ -1,10 +1,6 @@
 from brownie import accounts, config, interface, network
 from web3 import Web3
 
-from scripts.get_weth import get_weth
-
-
-
 
 def main():
     my_wallet_address = accounts.add(config["wallets"]["from_key"])
@@ -16,19 +12,19 @@ def main():
     print(f'wETH Kovan wallet address: {weth_wallet_addr}')
 
     lending_pool = get_lending_pool()
-    amount = Web3.toWei(0.01, "ether")
-    print(f'Amount to borrow: {amount}')
+    deposit_amount = Web3.toWei(0.001, "ether")
+    print(f'Amount to deposit: {deposit_amount}')
 
-    approve_erc20(amount, lending_pool.address, weth_wallet_addr, my_wallet_address)
+    approve_erc20(deposit_amount, lending_pool.address, weth_wallet_addr, my_wallet_address)
+    # lending_pool.deposit(
+    #   weth_wallet_addr, deposit_amount, my_wallet_address.address, 0, {"from": my_wallet_address}
+    # )
 
-    # print("Depositing...")
-    # lending_pool.deposit(weth_wallet_addr, amount, my_wallet_address.address, 0, {"from": my_wallet_address})
-    # print("Deposited!")
-    # borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, my_wallet_address)
-    # print(f"LETS BORROW IT ALL")
-    # erc20_eth_price = get_asset_price()
-    # amount_erc20_to_borrow = (1 / erc20_eth_price) * (borrowable_eth * 0.95)
-    # print(f"We are going to borrow {amount_erc20_to_borrow} DAI")
+    borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, my_wallet_address)
+    erc20_eth_price = get_asset_price()
+
+    amount_erc20_to_borrow = (1 / erc20_eth_price) * (borrowable_eth * 0.95)
+    print(f"Borrow {amount_erc20_to_borrow} DAI")
     # borrow_erc20(lending_pool, amount_erc20_to_borrow, my_wallet_address)
 
     # borrowable_eth, total_debt_eth = get_borrowable_data(lending_pool, my_wallet_address)
@@ -37,7 +33,7 @@ def main():
 
 
 def get_lending_pool():
-    """Get the 
+    """Get the aave lending pool address
     """
     aave_lending_pool_addr_provider = interface.ILendingPoolAddressesProvider(
         config["networks"][network.show_active()]["aave_lending_pool_addresses_provider"]
@@ -51,63 +47,59 @@ def get_lending_pool():
 
 
 def approve_erc20(amount, lending_pool_address, erc20_addr, my_acct_addr):
-    """Check if Aave protocol approves provided wETH token as ERC20 compliant
+    """Check if provided wETH token is ERC20 compliant. Wait for confirmations
     """
-    print("Approving ERC20...")
-    erc20 = interface.IERC20(erc20_addr)
-    tx_hash = erc20.approve(lending_pool_address, amount, {"from": my_acct_addr})
-    tx_hash.wait(1)
-    print("Approved!")
+    weth_wallet_addr = interface.IERC20(erc20_addr)
+    print(f'wETH Kovan wallet address: {weth_wallet_addr}')
+
+    tx_hash = weth_wallet_addr.approve(lending_pool_address, amount, {"from": my_acct_addr})
+    confirmations_required = 3
+    tx_hash.wait(confirmations_required)
+
     return True
 
 
 def get_borrowable_data(lending_pool, account):
+    """Check how much wETH is deposited with Aave, how much is currently borrowed and how much can
+    be borrowed
+    """
     (
-        total_collateral_eth,
-        total_debt_eth,
-        available_borrow_eth,
-        current_liquidation_threshold,
-        tlv,
-        health_factor,
+        total_collateral_wei, total_debt_wei, available_borrow_wei, _, _, health_factor,
     ) = lending_pool.getUserAccountData(account.address)
-    available_borrow_eth = Web3.fromWei(available_borrow_eth, "ether")
-    total_collateral_eth = Web3.fromWei(total_collateral_eth, "ether")
-    total_debt_eth = Web3.fromWei(total_debt_eth, "ether")
-    print(f"You have {total_collateral_eth} worth of ETH deposited.")
-    print(f"You have {total_debt_eth} worth of ETH borrowed.")
-    print(f"You can borrow {available_borrow_eth} worth of ETH.")
+
+    print(f'Borrower Aave health factor: {health_factor}')
+
+    available_borrow_eth = Web3.fromWei(available_borrow_wei, "ether")
+    total_collateral_eth = Web3.fromWei(total_collateral_wei, "ether")
+    total_debt_eth = Web3.fromWei(total_debt_wei, "ether")
+    print(f"{total_collateral_eth} worth of ETH is deposited")
+    print(f"{total_debt_eth} worth of ETH is borrowed")
+    print(f"{available_borrow_eth} worth of ETH can be borrowed")
+
     return (float(available_borrow_eth), float(total_debt_eth))
 
 
-def borrow_erc20(lending_pool, amount, account, erc20_address=None):
-    erc20_address = (
-        erc20_address
-        if erc20_address
-        else config["networks"][network.show_active()]["aave_dai_token"]
-    )
-    # 1 is stable interest rate
-    # 0 is the referral code
-    transaction = lending_pool.borrow(
-        erc20_address,
-        Web3.toWei(amount, "ether"),
-        1,
-        0,
-        account.address,
-        {"from": account},
-    )
-    transaction.wait(1)
-    print(f"Congratulations! We have just borrowed {amount}")
-
-
 def get_asset_price():
-    # For mainnet we can just do:
-    # return Contract(f"{pair}.data.eth").latestAnswer() / 1e8
     dai_eth_price_feed = interface.AggregatorV3Interface(
         config["networks"][network.show_active()]["dai_eth_price_feed"]
     )
     latest_price = Web3.fromWei(dai_eth_price_feed.latestRoundData()[1], "ether")
     print(f"The DAI/ETH price is {latest_price}")
+
     return float(latest_price)
+
+
+def borrow_erc20(lending_pool, borrow_amount, my_acct, erc20_address=None):
+    """Borrow DAI on Aave. Stable interest rate is 1. Referral code is 0.
+    """
+    erc20_address = config["networks"][network.show_active()]["aave_dai_token"]
+
+    transaction = lending_pool.borrow(
+        erc20_address, Web3.toWei(borrow_amount, "ether"), 1, 0, my_acct.address, {"from": my_acct},
+    )
+    confirmations_required = 2
+    transaction.wait(confirmations_required)
+    print(f"{borrow_amount} DAI is borrowed")
 
 
 def repay_all(amount, lending_pool, account):
